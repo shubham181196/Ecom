@@ -7,11 +7,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -63,6 +67,8 @@ public class AdminController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+
+
 	@ModelAttribute
 	public void getUserDetails(Principal p, Model m) {
 		if (p != null) {
@@ -73,12 +79,14 @@ public class AdminController {
 			m.addAttribute("countCart", countCart);
 		}
 
+
 		List<Category> allActiveCategory = categoryService.getAllActiveCategory();
 		m.addAttribute("categorys", allActiveCategory);
 	}
 
 	@GetMapping("/")
-	public String index() {
+	public String index(Model m) {
+		m.addAttribute("categorys",categoryService.getAllCategory());
 		return "admin/index";
 	}
 
@@ -86,6 +94,7 @@ public class AdminController {
 	public String loadAddProduct(Model m) {
 		List<Category> categories = categoryService.getAllCategory();
 		m.addAttribute("categories", categories);
+		m.addAttribute("categorys",categories);
 		return "admin/add_product";
 	}
 
@@ -142,7 +151,7 @@ public class AdminController {
 	}
 
 	@GetMapping("/deleteCategory/{id}")
-	public String deleteCategory(@PathVariable int id, HttpSession session) {
+	public String deleteCategory(@PathVariable("id") int id, HttpSession session) {
 		Boolean deleteCategory = categoryService.deleteCategory(id);
 
 		if (deleteCategory) {
@@ -155,8 +164,9 @@ public class AdminController {
 	}
 
 	@GetMapping("/loadEditCategory/{id}")
-	public String loadEditCategory(@PathVariable int id, Model m) {
+	public String loadEditCategory(@PathVariable("id") int id, Model m) {
 		m.addAttribute("category", categoryService.getCategoryById(id));
+
 		return "admin/edit_category";
 	}
 
@@ -226,9 +236,9 @@ public class AdminController {
 	}
 
 	@GetMapping("/products")
-	public String loadViewProduct(Model m, @RequestParam(name="ch",defaultValue = "") String ch,
+	public String loadViewProduct(Model m, @RequestParam(name="ch",required = false) String ch,
 			@RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
-			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
+			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,HttpSession session) {
 
 //		List<Product> products = null;
 //		if (ch != null && ch.length() > 0) {
@@ -239,13 +249,15 @@ public class AdminController {
 //		m.addAttribute("products", products);
 
 		Page<Product> page = null;
-		if (ch != null && ch.length() > 0) {
+
+		if (ch!=null) {
+			ch=ch.trim();
 			page = productService.searchProductPagination(pageNo, pageSize, ch);
 		} else {
 			page = productService.getAllProductsPagination(pageNo, pageSize);
 		}
+		m.addAttribute("categorys",categoryService.getAllCategory());
 		m.addAttribute("products", page.getContent());
-
 		m.addAttribute("pageNo", page.getNumber());
 		m.addAttribute("pageSize", pageSize);
 		m.addAttribute("totalElements", page.getTotalElements());
@@ -257,7 +269,7 @@ public class AdminController {
 	}
 
 	@GetMapping("/deleteProduct/{id}")
-	public String deleteProduct(@PathVariable int id, HttpSession session) {
+	public String deleteProduct(@PathVariable("id") int id, HttpSession session) {
 		Boolean deleteProduct = productService.deleteProduct(id);
 		if (deleteProduct) {
 			session.setAttribute("succMsg", "Product delete success");
@@ -268,7 +280,7 @@ public class AdminController {
 	}
 
 	@GetMapping("/editProduct/{id}")
-	public String editProduct(@PathVariable int id, Model m) {
+	public String editProduct(@PathVariable("id") int id, Model m) {
 		m.addAttribute("product", productService.getProductById(id));
 		m.addAttribute("categories", categoryService.getAllCategory());
 		return "admin/edit_product";
@@ -292,27 +304,39 @@ public class AdminController {
 	}
 
 	@GetMapping("/users")
-	public String getAllUsers(Model m, @RequestParam Integer type) {
-		List<UserDtls> users = null;
-		if (type == 1) {
-			users = userService.getUsers("ROLE_USER");
+	public String getAllUsers(Model m, @RequestParam(name="ch",defaultValue = "") String ch,@RequestParam(name = "type",defaultValue ="1" ) Integer type,@RequestParam(name="pageNo",defaultValue = "0") Integer pageNo,@RequestParam(name="pageSize",defaultValue = "10") Integer pageSize,HttpSession session) {
+		Page<UserDtls> users = null;
+
+		if (type == 1 ) {
+			if(ch!="" && ch.length()>2) users= userService.searchUserPagination(pageNo,pageSize,"ROLE_USER",ch);
+			else users=userService.findByType(pageNo,pageSize,"ROLE_USER");
 		} else {
-			users = userService.getUsers("ROLE_ADMIN");
+			if(ch!="" && ch.length()>2) users=userService.searchUserPagination(pageNo,pageSize,"ROLE_ADMIN",ch);
+			else users = userService.findByType(pageNo,pageSize,"ROLE_ADMIN");
 		}
+//		m.addAttribute("categorys",categoryService.getAllCategory());
+		m.addAttribute("users", users.getContent());
+		m.addAttribute("pageNo", users.getNumber());
+		m.addAttribute("pageSize", users.getSize());
+		m.addAttribute("totalElements", users.getTotalElements());
+		m.addAttribute("totalPages", users.getTotalPages());
+		m.addAttribute("isFirst", users.isFirst());
+		m.addAttribute("isLast", users.isLast());
 		m.addAttribute("userType",type);
-		m.addAttribute("users", users);
+//		System.out.println(session.getAttribute("ch"));
+//		session.setAttribute(ch,"");
 		return "/admin/users";
 	}
 
 	@GetMapping("/updateSts")
-	public String updateUserAccountStatus(@RequestParam Boolean status, @RequestParam Integer id,@RequestParam Integer type, HttpSession session) {
+	public String updateUserAccountStatus(@RequestParam(value = "status") Boolean status, @RequestParam("id") Integer id,@RequestParam("type") Integer type,@RequestParam("pageNo") Integer pageNo,@RequestParam("pageSize") Integer pageSize, HttpSession session) {
 		Boolean f = userService.updateAccountStatus(id, status);
 		if (f) {
 			session.setAttribute("succMsg", "Account Status Updated");
 		} else {
 			session.setAttribute("errorMsg", "Something wrong on server");
 		}
-		return "redirect:/admin/users?type="+type;
+		return "redirect:/admin/users?type="+type+"&pageNo="+pageNo+"&pageSize="+pageSize;
 	}
 
 	@GetMapping("/orders")
@@ -337,7 +361,7 @@ public class AdminController {
 	}
 
 	@PostMapping("/update-order-status")
-	public String updateOrderStatus(@RequestParam Integer id, @RequestParam Integer st, HttpSession session) {
+	public String updateOrderStatus(@RequestParam("id") Integer id, @RequestParam("st") Integer st, HttpSession session) {
 
 		OrderStatus[] values = OrderStatus.values();
 		String status = null;
@@ -365,7 +389,7 @@ public class AdminController {
 	}
 
 	@GetMapping("/search-order")
-	public String searchProduct(@RequestParam String orderId, Model m, HttpSession session,
+	public String searchProduct(@RequestParam("orderId") String orderId, Model m, HttpSession session,
 			@RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
 
@@ -450,7 +474,7 @@ public class AdminController {
 	}
 
 	@PostMapping("/change-password")
-	public String changePassword(@RequestParam String newPassword, @RequestParam String currentPassword, Principal p,
+	public String changePassword(@RequestParam("newPassword") String newPassword, @RequestParam("currentPassword") String currentPassword, Principal p,
 			HttpSession session) {
 		UserDtls loggedInUserDetails = commonUtil.getLoggedInUserDetails(p);
 

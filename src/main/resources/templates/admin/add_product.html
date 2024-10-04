@@ -40,11 +40,10 @@
 								</div>
 
 								<div class="mb-3">
-									<label>Category</label> <select required class="form-control "
-										name="category" >
-
-										<option >--select--</option>
-										<option  th:each="c:${categories}" >[[${c.name}]]</option>
+									<label>Category</label> <select  class="form-select"   aria-label=" select example"
+										name="category" required>
+										<option disabled selected value >--select--</option>
+										<option  th:each="c:${categories}"  >[[${c.name}]]</option>
 
 									</select>
 								</div>
@@ -79,7 +78,7 @@
 
 									<div class="mb-3 col">
 										<label>Upload Image</label> <input type="file" name="file"
-											class="form-control">
+											class="form-control" required>
 									</div>
 								</div>
 								<button class="btn btn-primary col-md-12">Submit</button>

@@ -71,7 +71,8 @@ public class UserController {
 	}
 
 	@GetMapping("/addCart")
-	public String addToCart(@RequestParam Integer pid, @RequestParam Integer uid, HttpSession session) {
+	public String addToCart(@RequestParam(name="pid") Integer pid, @RequestParam(name="uid") Integer uid, HttpSession session) {
+
 		Cart saveCart = cartService.saveCart(pid, uid);
 
 		if (ObjectUtils.isEmpty(saveCart)) {
@@ -96,7 +97,7 @@ public class UserController {
 	}
 
 	@GetMapping("/cartQuantityUpdate")
-	public String updateCartQuantity(@RequestParam String sy, @RequestParam Integer cid) {
+	public String updateCartQuantity(@RequestParam(name = "sy") String sy, @RequestParam(name = "cid") Integer cid) {
 		cartService.updateQuantity(sy, cid);
 		return "redirect:/user/cart";
 	}
@@ -118,6 +119,7 @@ public class UserController {
 			m.addAttribute("orderPrice", orderPrice);
 			m.addAttribute("totalOrderPrice", totalOrderPrice);
 		}
+//		System.out.println(carts.get(0).getProduct().getStock());
 		return "/user/order";
 	}
 

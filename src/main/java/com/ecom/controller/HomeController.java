@@ -84,12 +84,14 @@ public class HomeController {
 		List<Product> allActiveProducts = productService.getAllActiveProducts("").stream()
 				.sorted((p1, p2) -> p2.getId().compareTo(p1.getId())).limit(8).toList();
 		m.addAttribute("category", allActiveCategory);
+		m.addAttribute("categorys",categoryService.getAllCategory());
 		m.addAttribute("products", allActiveProducts);
 		return "index";
 	}
 
 	@GetMapping("/signin")
-	public String login() {
+	public String login(Model m) {
+		m.addAttribute("categorys",categoryService.getAllCategory());
 		return "login";
 	}
 
@@ -108,11 +110,11 @@ public class HomeController {
 		m.addAttribute("products", products);
 		return "product";
 	}
-	@GetMapping("/products/api")
-	public String products(Model m, @RequestParam(value = "category", defaultValue = "") String category,
+	@GetMapping("/productsWithCategory")
+	public String products(Model m, @RequestParam(name = "category", defaultValue = "") String category,
 			@RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "12") Integer pageSize,
-			@RequestParam(defaultValue = "") String ch) {
+			@RequestParam(name = "ch",defaultValue = "") String ch) {
 
 		List<Category> categories = categoryService.getAllActiveCategory();
 		m.addAttribute("paramValue", category);
@@ -142,7 +144,7 @@ public class HomeController {
 	}
 
 	@GetMapping("/product/{id}")
-	public String product(@PathVariable int id, Model m) {
+	public String product(@PathVariable("id") int id, Model m) {
 		Product productById = productService.getProductById(id);
 		m.addAttribute("product", productById);
 		return "view_product";
@@ -159,6 +161,7 @@ public class HomeController {
 		} else {
 			String imageName = file.isEmpty() ? "default.jpg" : file.getOriginalFilename();
 			user.setProfileImage(imageName);
+			user.setRole("ROLE_ADMIN");
 			UserDtls saveUser = userService.saveUser(user);
 
 			if (!ObjectUtils.isEmpty(saveUser)) {

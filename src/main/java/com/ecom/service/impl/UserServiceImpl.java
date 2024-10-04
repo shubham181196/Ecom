@@ -11,6 +11,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -32,7 +35,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserDtls saveUser(UserDtls user) {
-		user.setRole("ROLE_ADMIN");
+		user.setRole("ROLE_USER");
 		user.setIsEnable(true);
 		user.setAccountNonLocked(true);
 		user.setFailedAttempt(0);
@@ -176,6 +179,31 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Boolean existsEmail(String email) {
 		return userRepository.existsByEmail(email);
+	}
+
+	@Override
+	public Page<UserDtls> findAll(int pageNo, int pageSize) {
+		Pageable pageable= PageRequest.of(pageNo,pageSize);
+
+		Page<UserDtls>page= userRepository.findAll(pageable);
+		for(UserDtls u:page){
+			System.out.println(u.getId()+"found");
+		}
+		return page;
+	}
+
+	@Override
+	public Page<UserDtls> findByType(int pageNo, int pageSize, String type) {
+		Pageable pageable= PageRequest.of(pageNo,pageSize);
+		return userRepository.findByRole(pageable,type);
+
+	}
+
+	@Override
+	public Page<UserDtls> searchUserPagination(int pageNo, int pageSize, String ch,String type) {
+		Pageable pageable= PageRequest.of(pageNo,pageSize);
+
+		return userRepository.findByRoleAndNameContainingIgnoreCaseOrEmailContainingIgnoreCase(pageable,type,ch,ch);
 	}
 
 }
