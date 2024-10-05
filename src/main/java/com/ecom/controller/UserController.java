@@ -1,18 +1,21 @@
 package com.ecom.controller;
 
 import java.security.Principal;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.ecom.config.SecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ecom.model.Cart;
@@ -50,7 +53,8 @@ public class UserController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-
+	@Autowired
+	private SecurityConfig securityConfig;
 	@GetMapping("/")
 	public String home() {
 		return "user/home";
@@ -71,7 +75,8 @@ public class UserController {
 	}
 
 	@GetMapping("/addCart")
-	public String addToCart(@RequestParam Integer pid, @RequestParam Integer uid, HttpSession session) {
+	public String addToCart(@RequestParam(name="pid") Integer pid, @RequestParam(name="uid") Integer uid, HttpSession session) {
+
 		Cart saveCart = cartService.saveCart(pid, uid);
 
 		if (ObjectUtils.isEmpty(saveCart)) {
@@ -82,6 +87,27 @@ public class UserController {
 		return "redirect:/product/" + pid;
 	}
 
+	@GetMapping("/create-order")
+	public String createOrder( Principal p,Model m) throws Exception {
+		RestTemplate rs=securityConfig.getRestTemplate();
+		rs.getInterceptors().add(new BasicAuthenticationInterceptor("rzp_test_zEaIxcKws1Lycn","########"));
+		Map<String,Object> requestbody=new HashMap<>();
+		requestbody.put("amount",100);
+		requestbody.put("currency","INR");
+		requestbody.put("receipt","#trn_36");
+		HttpHeaders headers= new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<Map<String,Object>> requestEntity=new HttpEntity<>(requestbody,headers);
+		try {
+			ResponseEntity<Map> resp = rs.exchange("https://api.razorpay.com/v1/orders", HttpMethod.POST, requestEntity, Map.class);
+			System.out.println(resp.getStatusCode() + " :: " + resp.getBody().get("amount").toString());
+			m.addAttribute("orderId", resp.getBody().get("id"));
+			return "/user/paymentgateway";
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return "/user/cart";
+	}
 	@GetMapping("/cart")
 	public String loadCartPage(Principal p, Model m) {
 
@@ -95,8 +121,9 @@ public class UserController {
 		return "/user/cart";
 	}
 
+
 	@GetMapping("/cartQuantityUpdate")
-	public String updateCartQuantity(@RequestParam String sy, @RequestParam Integer cid) {
+	public String updateCartQuantity(@RequestParam(name = "sy") String sy, @RequestParam(name = "cid") Integer cid) {
 		cartService.updateQuantity(sy, cid);
 		return "redirect:/user/cart";
 	}
@@ -118,6 +145,7 @@ public class UserController {
 			m.addAttribute("orderPrice", orderPrice);
 			m.addAttribute("totalOrderPrice", totalOrderPrice);
 		}
+//		System.out.println(carts.get(0).getProduct().getStock());
 		return "/user/order";
 	}
 
@@ -130,7 +158,7 @@ public class UserController {
 		return "redirect:/user/success";
 	}
 
-	@GetMapping("/success")
+	@PostMapping("/success")
 	public String loadSuccess() {
 		return "/user/success";
 	}

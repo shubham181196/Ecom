@@ -7,9 +7,9 @@
 </head>
 <body>
 	<section>
-		<div class="container-fluid mt-4 p-3">
-			<div class="row">
-				<p class="text-center fs-3 mt-2">All Products</p>
+		<div class="container-fluid mt-4 px-3">
+			<div class="row" style="margin-top:70px">
+				<p class="text-center fs-3 ">All Products</p>
 				<hr>
 				<a href="/admin/" class="text-decoration-none"><i
 					class="fa-solid fa-arrow-left"></i> Back</a>
@@ -30,21 +30,21 @@
 				<div class="col-md-4 p-3">
 
 					<form action="/admin/products" method="get">
-						<div class="row">
-							<div class="col">
+						<div class="d-flex" >
+							<span style="margin-right:8px">
 								<input type="text" class="form-control " name="ch">
-							</div>
-							<div class="col">
+							</span>
+							<span>
 								<button class="btn btn-primary col">Search</button>
-							</div>
+							</span>
 						</div>
 					</form>
 				</div>
 
 
 				<!-- <div class="card card-sh">-->
-				<div class="p-3">
-					<table class="table table-bordered" th:classappend="(${products!=null and !products.isEmpty()})?'min:height:500px':''">
+				<div class="p-3" style="position:relative;min-height:1000px">
+					<table class="table table-bordered" >
 						<thead class="table-light text-center " >
 							<tr>
 								<th scope="col">Sl No</th>
@@ -83,13 +83,13 @@
 						</th:block>
 						</tbody>
 					</table>
-					<div class="container-md text-center h-100 fw-bold fs-4" style="margin-top:180px">No products available</div>
-
-					<div class="row">
+					<th:block th:if="${totalElements==0}"><div class="container-md d-flex align-items-center justify-content-center fw-bold fs-4" style="min-height:1000px">No products available</div></th:block>
+					<th:block th:unless="${totalElements==0}">
+					<div class="row" style="position:absolute;bottom:0;width:100%">
 						<div class="col-md-2 fw-bolder" style="margin-top:7px">Total Product : [[${totalElements}]]</div>
 						<div class="col-md-10" >
 
-							<nav aria-label="Page navigation example" style="margin-left:34%">
+							<nav aria-label="Page navigation example" style="margin-left:35%">
 								<ul class="pagination">
 									<li class="page-item"
 										th:classappend="${isFirst} ? 'disabled':''"><a
@@ -114,6 +114,7 @@
 						</div>
 
 					</div>
+					</th:block>
 				</div>
 			</div>
 		</div>
