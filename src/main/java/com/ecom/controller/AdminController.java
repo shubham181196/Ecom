@@ -316,6 +316,7 @@ public class AdminController {
 		}
 //		m.addAttribute("categorys",categoryService.getAllCategory());
 		m.addAttribute("users", users.getContent());
+		System.out.println(users.getTotalElements());
 		m.addAttribute("pageNo", users.getNumber());
 		m.addAttribute("pageSize", users.getSize());
 		m.addAttribute("totalElements", users.getTotalElements());
