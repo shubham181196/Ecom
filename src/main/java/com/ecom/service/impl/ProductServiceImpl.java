@@ -101,6 +101,29 @@ public class ProductServiceImpl implements ProductService {
 		}
 		return null;
 	}
+	@Override
+	public Product updateProduct(Product product) {
+
+		Product dbProduct = getProductById(product.getId());
+		dbProduct.setTitle(product.getTitle());
+		dbProduct.setDescription(product.getDescription());
+		dbProduct.setCategory(product.getCategory());
+		dbProduct.setPrice(product.getPrice());
+		dbProduct.setStock(product.getStock());
+
+		dbProduct.setIsActive(product.getIsActive());
+		dbProduct.setDiscount(product.getDiscount());
+
+		// 5=100*(5/100); 100-5=95
+		Double disocunt = product.getPrice() * (product.getDiscount() / 100.0);
+		Double discountPrice = product.getPrice() - disocunt;
+		dbProduct.setDiscountPrice(discountPrice);
+
+		Product updateProduct = productRepository.save(dbProduct);
+
+
+		return updateProduct;
+	}
 
 	@Override
 	public List<Product> getAllActiveProducts(String category) {
@@ -138,6 +161,8 @@ public class ProductServiceImpl implements ProductService {
 		}
 		return pageProduct;
 	}
+
+
 
 	@Override
 	public Page<Product> searchActiveProductPagination(Integer pageNo, Integer pageSize, String category, String ch) {

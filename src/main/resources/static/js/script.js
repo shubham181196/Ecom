@@ -1,4 +1,7 @@
+
+
 $(function(){
+
 
 // User Register validation
 
