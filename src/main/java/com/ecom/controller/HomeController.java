@@ -101,13 +101,20 @@ public class HomeController {
 	}
 
 	@GetMapping("/products")
-	public String products1(Model m) {
-		Integer totalElements=0;
-		List<Product> products=productService.getAllProducts();
-		System.out.println(products.toString());
-		totalElements=products.size();
-		m.addAttribute("totalElements",totalElements);
+	public String products1(Model m, @RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
+							@RequestParam(name = "pageSize", defaultValue = "12") Integer pageSize) {
+
+		Page<Product> page = null;
+		page = productService.getAllActiveProductPagination(pageNo, pageSize, "");
+		List<Product> products = page.getContent();
 		m.addAttribute("products", products);
+		m.addAttribute("productsSize", products.size());
+		m.addAttribute("pageNo", page.getNumber());
+		m.addAttribute("pageSize", pageSize);
+		m.addAttribute("totalElements", page.getTotalElements());
+		m.addAttribute("totalPages", page.getTotalPages());
+		m.addAttribute("isFirst", page.isFirst());
+		m.addAttribute("isLast", page.isLast());
 		return "product";
 	}
 	@GetMapping("/productsWithCategory")

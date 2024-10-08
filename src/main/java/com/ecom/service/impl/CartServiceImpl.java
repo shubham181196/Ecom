@@ -100,4 +100,9 @@ public class CartServiceImpl implements CartService {
 
 	}
 
+	@Override
+	public void deletecart(Cart cart) {
+		cartRepository.delete(cart);
+	}
+
 }
