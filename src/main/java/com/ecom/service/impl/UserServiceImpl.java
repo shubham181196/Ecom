@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Value("${absolutePath}")
+	private String AbsolutePath;
 
 	@Override
 	public UserDtls saveUser(UserDtls user) {
@@ -148,9 +152,8 @@ public class UserServiceImpl implements UserService {
 
 		try {
 			if (!img.isEmpty()) {
-				File saveFile = new ClassPathResource("static/img").getFile();
 
-				Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "profile_img" + File.separator
+				Path path = Paths.get(AbsolutePath + File.separator +"img"+File.separator + "profile_img" + File.separator
 						+ img.getOriginalFilename());
 
 //			System.out.println(path);

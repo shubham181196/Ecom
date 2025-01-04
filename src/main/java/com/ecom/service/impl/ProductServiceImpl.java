@@ -6,16 +6,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.ecom.model.Product;
 import com.ecom.repository.ProductRepository;
 import com.ecom.service.ProductService;
@@ -25,6 +23,9 @@ public class ProductServiceImpl implements ProductService {
 
 	@Autowired
 	private ProductRepository productRepository;
+
+	@Value("${absolutePath}")
+	private String AbsolutePath;
 
 	@Override
 	public Product saveProduct(Product product) {
@@ -87,9 +88,9 @@ public class ProductServiceImpl implements ProductService {
 			if (!image.isEmpty()) {
 
 				try {
-					File saveFile = new ClassPathResource("static/img").getFile();
 
-					Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "product_img" + File.separator
+
+					Path path = Paths.get(AbsolutePath + File.separator +"img"+File.separator + "product_img" + File.separator
 							+ image.getOriginalFilename());
 					Files.copy(image.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 

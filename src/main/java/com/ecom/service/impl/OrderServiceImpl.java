@@ -103,8 +103,10 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public ProductOrder getOrdersByOrderId(String orderId) {
-		return orderRepository.findByOrderId(orderId);
+	public Page<ProductOrder> getOrdersByOrderId(String orderId,Integer pageNo, Integer pageSize) {
+
+		Pageable pageable = PageRequest.of(pageNo, pageSize);
+		return orderRepository.findByOrderIdContaining(orderId,pageable);
 	}
 
 }
