@@ -58,7 +58,7 @@
 					</tbody>
 				</table>
 				<div class="text-center">
-					<a href="/user/create-order" class="btn btn-warning">Proceed to Payment</a>
+					<a href="/user/create-order" class="btn btn-warning" th:classappend="${(carts.size()==0)?'d-none':''}">Proceed to Payment</a>
 				</div>
 			</div>
 		</div>

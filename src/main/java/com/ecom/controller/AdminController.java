@@ -11,6 +11,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.User;
@@ -67,7 +68,8 @@ public class AdminController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-
+	@Value("${absolutePath}")
+	private String AbsolutePath;
 
 	@ModelAttribute
 	public void getUserDetails(Principal p, Model m) {
@@ -135,9 +137,7 @@ public class AdminController {
 				session.setAttribute("errorMsg", "Not saved ! internal server error");
 			} else {
 
-				File saveFile = new ClassPathResource("static/img").getFile();
-
-				Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "category_img" + File.separator
+				Path path = Paths.get(AbsolutePath + File.separator +"img"+File.separator + "category_img" + File.separator
 						+ file.getOriginalFilename());
 
 				// System.out.println(path);
@@ -189,9 +189,8 @@ public class AdminController {
 		if (!ObjectUtils.isEmpty(updateCategory)) {
 
 			if (!file.isEmpty()) {
-				File saveFile = new ClassPathResource("static/img").getFile();
 
-				Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "category_img" + File.separator
+				Path path = Paths.get(AbsolutePath + File.separator +"img"+File.separator +"category_img" + File.separator
 						+ file.getOriginalFilename());
 
 				// System.out.println(path);
@@ -219,9 +218,7 @@ public class AdminController {
 
 		if (!ObjectUtils.isEmpty(saveProduct)) {
 
-			File saveFile = new ClassPathResource("static/img").getFile();
-
-			Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "product_img" + File.separator
+			Path path = Paths.get(AbsolutePath + File.separator +"img"+File.separator + "product_img" + File.separator
 					+ image.getOriginalFilename());
 
 			// System.out.println(path);
@@ -240,13 +237,6 @@ public class AdminController {
 			@RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,HttpSession session) {
 
-//		List<Product> products = null;
-//		if (ch != null && ch.length() > 0) {
-//			products = productService.searchProduct(ch);
-//		} else {
-//			products = productService.getAllProducts();
-//		}
-//		m.addAttribute("products", products);
 
 		Page<Product> page = null;
 
@@ -326,7 +316,7 @@ public class AdminController {
 		m.addAttribute("userType",type);
 //		System.out.println(session.getAttribute("ch"));
 //		session.setAttribute(ch,"");
-		return "/admin/users";
+		return "admin/users";
 	}
 
 	@GetMapping("/updateSts")
@@ -342,7 +332,7 @@ public class AdminController {
 
 	@GetMapping("/orders")
 	public String getAllOrders(Model m, @RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
-			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
+			@RequestParam(name = "pageSize", defaultValue = "2") Integer pageSize) {
 //		List<ProductOrder> allOrders = orderService.getAllOrders();
 //		m.addAttribute("orders", allOrders);
 //		m.addAttribute("srch", false);
@@ -358,7 +348,7 @@ public class AdminController {
 		m.addAttribute("isFirst", page.isFirst());
 		m.addAttribute("isLast", page.isLast());
 
-		return "/admin/orders";
+		return "admin/orders";
 	}
 
 	@PostMapping("/update-order-status")
@@ -390,21 +380,27 @@ public class AdminController {
 	}
 
 	@GetMapping("/search-order")
-	public String searchProduct(@RequestParam("orderId") String orderId, Model m, HttpSession session,
-			@RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
-			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
+	public String searchProduct(@RequestParam ("orderId") String orderId, Model m, HttpSession session,
+			@RequestParam(name = "pageNo", defaultValue = "0",required = false) Integer pageNo,
+			@RequestParam(name = "pageSize", defaultValue = "2",required = false) Integer pageSize) {
+
 
 		if (orderId != null && orderId.length() > 0) {
 
-			ProductOrder order = orderService.getOrdersByOrderId(orderId.trim());
+			Page<ProductOrder> order = orderService.getOrdersByOrderId(orderId.trim(),pageNo,pageSize);
 
 			if (ObjectUtils.isEmpty(order)) {
 				session.setAttribute("errorMsg", "Incorrect orderId");
 				m.addAttribute("orderDtls", null);
 			} else {
-				m.addAttribute("orderDtls", order);
+				m.addAttribute("orderDtls", order.getContent());
 			}
-
+			m.addAttribute("pageNo", order.getNumber());
+			m.addAttribute("pageSize", pageSize);
+			m.addAttribute("totalElements", order.getTotalElements());
+			m.addAttribute("totalPages", order.getTotalPages());
+			m.addAttribute("isFirst", order.isFirst());
+			m.addAttribute("isLast", order.isLast());
 			m.addAttribute("srch", true);
 		} else {
 //			List<ProductOrder> allOrders = orderService.getAllOrders();
@@ -423,13 +419,13 @@ public class AdminController {
 			m.addAttribute("isLast", page.isLast());
 
 		}
-		return "/admin/orders";
+		return "admin/orders";
 
 	}
 
 	@GetMapping("/add-admin")
 	public String loadAdminAdd() {
-		return "/admin/add_admin";
+		return "admin/add_admin";
 	}
 
 	@PostMapping("/save-admin")
@@ -442,9 +438,8 @@ public class AdminController {
 
 		if (!ObjectUtils.isEmpty(saveUser)) {
 			if (!file.isEmpty()) {
-				File saveFile = new ClassPathResource("static/img").getFile();
 
-				Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "profile_img" + File.separator
+				Path path = Paths.get(AbsolutePath + File.separator +"img"+File.separator +"profile_img" + File.separator
 						+ file.getOriginalFilename());
 
 //				System.out.println(path);
@@ -460,7 +455,7 @@ public class AdminController {
 
 	@GetMapping("/profile")
 	public String profile() {
-		return "/admin/profile";
+		return "admin/profile";
 	}
 
 	@PostMapping("/update-profile")

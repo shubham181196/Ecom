@@ -135,7 +135,7 @@ public class UserController {
 			model.addAttribute("email", "shubham@gmail.com"); // Replace with actual user email
 			model.addAttribute("contact", "9023600835"); // Replace with actual user contact
 
-			return "/user/paymentgateway"; // Redirect to the payment gateway view
+			return "user/paymentgateway"; // Redirect to the payment gateway view
 		} catch (Exception e) {
 			e.printStackTrace(); // Log the exception for debugging
 		}
@@ -155,7 +155,7 @@ public class UserController {
 			Double totalOrderPrice = carts.get(carts.size() - 1).getTotalOrderPrice();
 			m.addAttribute("totalOrderPrice", totalOrderPrice);
 		}
-		return "/user/cart";
+		return "user/cart";
 	}
 
 
@@ -183,7 +183,7 @@ public class UserController {
 			m.addAttribute("totalOrderPrice", totalOrderPrice);
 		}
 
-		return "/user/order";
+		return "user/order";
 	}
 
 	@PostMapping("/save-order")
@@ -231,7 +231,7 @@ public class UserController {
 
 					}
 				}
-				return "/user/success";
+				return "user/success";
 			}
 			else return "login";
 		} else return "login";
@@ -267,7 +267,7 @@ public class UserController {
 		UserDtls loginUser = getLoggedInUserDetails(p);
 		List<ProductOrder> orders = orderService.getOrdersByUser(loginUser.getId());
 		m.addAttribute("orders", orders);
-		return "/user/my_orders";
+		return "user/my_orders";
 	}
 
 	@GetMapping("/update-status")
@@ -300,7 +300,7 @@ public class UserController {
 
 	@GetMapping("/profile")
 	public String profile() {
-		return "/user/profile";
+		return "user/profile";
 	}
 
 	@PostMapping("/update-profile")
